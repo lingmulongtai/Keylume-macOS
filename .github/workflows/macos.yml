@@ -1,12 +1,27 @@
 name: macOS build and verification
 on:
   workflow_call:
+    inputs:
+      distribution:
+        type: boolean
+        default: false
+    secrets:
+      MACOS_CERTIFICATES_P12_BASE64:
+        required: false
+      MACOS_CERTIFICATES_PASSWORD:
+        required: false
+      MACOS_NOTARY_KEY_P8_BASE64:
+        required: false
+      MACOS_NOTARY_KEY_ID:
+        required: false
+      MACOS_NOTARY_ISSUER_ID:
+        required: false
 permissions:
   contents: read
 jobs:
   build:
     runs-on: macos-15
-    timeout-minutes: 60
+    timeout-minutes: ${{ inputs.distribution && 180 || 60 }}
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
@@ -25,10 +40,12 @@ jobs:
       - run: npm run build
       - run: cargo test --manifest-path src-tauri/Cargo.toml --locked --lib
       - name: Build universal macOS packages
+        env:
+          BUNDLES: ${{ inputs.distribution && 'app' || 'app,dmg' }}
         run: |
           export CARGO_ENCODED_RUSTFLAGS="--remap-path-prefix=$HOME=/build/home"$'\x1f'"--remap-path-prefix=$GITHUB_WORKSPACE=/src/keylume"
           export CFLAGS="-ffile-prefix-map=$GITHUB_WORKSPACE=/src/keylume -ffile-prefix-map=$HOME=/build/home"
-          npm run package -- --target universal-apple-darwin
+          npm run package -- --target universal-apple-darwin --bundles "$BUNDLES"
       - name: Verify universal app and native self-test
         run: |
           app=src-tauri/target/universal-apple-darwin/release/bundle/macos/Keylume.app
@@ -39,13 +56,25 @@ jobs:
           codesign --verify --deep --strict "$app"
           "$app/Contents/MacOS/keylume" --self-test "$RUNNER_TEMP/keylume-report.json"
           node -e "if (!require(process.argv[1]).passed) process.exit(1)" "$RUNNER_TEMP/keylume-report.json"
-      - name: Prepare DMG and PKG
+      - name: Prepare CI test packages
+        if: ${{ !inputs.distribution }}
         run: |
           set -euo pipefail
           bundle=src-tauri/target/universal-apple-darwin/release/bundle
           version=$(node -p 'require("./package.json").version')
           bash scripts/package-macos-pkg.sh "$bundle/macos/Keylume.app" artifacts/release
           cp "$bundle/dmg/Keylume_${version}_universal.dmg" artifacts/release/
+      - name: Sign, notarize and verify distribution packages
+        if: inputs.distribution
+        env:
+          MACOS_CERTIFICATES_P12_BASE64: ${{ secrets.MACOS_CERTIFICATES_P12_BASE64 }}
+          MACOS_CERTIFICATES_PASSWORD: ${{ secrets.MACOS_CERTIFICATES_PASSWORD }}
+          MACOS_NOTARY_KEY_P8_BASE64: ${{ secrets.MACOS_NOTARY_KEY_P8_BASE64 }}
+          MACOS_NOTARY_KEY_ID: ${{ secrets.MACOS_NOTARY_KEY_ID }}
+          MACOS_NOTARY_ISSUER_ID: ${{ secrets.MACOS_NOTARY_ISSUER_ID }}
+        run: |
+          bash scripts/ci-sign-macos.sh \
+            src-tauri/target/universal-apple-darwin/release/bundle/macos/Keylume.app artifacts/release
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: keylume-macos
