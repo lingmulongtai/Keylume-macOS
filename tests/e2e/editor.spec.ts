@@ -124,6 +124,10 @@ test('hardware face and clickable controls stay aligned at full zoom', async ({ 
     .getByRole('button', { name: 'pad.top.1 rgb LED', exact: true })
     .boundingBox();
   expect(Math.abs(physical!.x + physical!.width / 2 - hit!.x - hit!.width / 2)).toBeLessThan(1);
+  const inspector = page.getByRole('button', { name: 'インスペクタ', exact: true });
+  await expect(inspector).toHaveAttribute('aria-expanded', 'false');
+  await inspector.click();
+  await expect(page.getByRole('button', { name: 'インスペクタを閉じる' })).toBeVisible();
   for (let i = 0; i < 10; i++)
     await page.getByRole('button', { name: '拡大', exact: true }).click();
   await page.getByRole('button', { name: 'btn.record mono LED', exact: true }).click();
@@ -131,6 +135,8 @@ test('hardware face and clickable controls stay aligned at full zoom', async ({ 
     page.getByRole('button', { name: 'btn.record mono LED', exact: true }),
   ).toHaveAttribute('aria-pressed', 'true');
   await page.getByRole('button', { name: '表示をリセット', exact: true }).click();
+  await page.getByRole('button', { name: 'インスペクタを閉じる' }).click();
+  await expect(inspector).toHaveAttribute('aria-expanded', 'false');
   await page.getByLabel('適用するプリセット').click();
   await page.getByRole('button', { name: '一覧・管理', exact: true }).click();
   await expect(page.locator('.preset-card').first().locator('[data-key]')).toHaveCount(61);

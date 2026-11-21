@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  SlidersHorizontal,
+  House,
+  Ellipsis,
   Radio,
   Keyboard,
   Settings2,
@@ -15,7 +16,7 @@ import {
 } from 'lucide-react';
 import type { AppState, Preset, Settings, Status } from './types';
 import { uid } from './types';
-import { getState, command, subscribe, native } from './api';
+import { getState, command, subscribe } from './api';
 import Editor from './Editor';
 import Stage from './stage/Stage';
 import Controller from './ControllerScreen';
@@ -32,7 +33,7 @@ import { appVersion } from './version';
 import { useUpdates, UpdateBanner } from './Updates';
 type Page = 'stage' | 'lighting' | 'controller' | 'profiles' | 'coexist' | 'device' | 'settings';
 const pages = [
-  { id: 'lighting', name: 'ホーム', icon: SlidersHorizontal },
+  { id: 'lighting', name: 'ホーム', icon: House },
   { id: 'stage', name: '演奏', icon: Play },
   { id: 'controller', name: 'コントローラー', icon: Keyboard },
   { id: 'settings', name: '設定', icon: Settings2 },
@@ -205,7 +206,7 @@ export default function App() {
     setSaveName(state.preset.builtin ? state.preset.name + ' のコピー' : state.preset.name);
   return (
     <div className="app-shell">
-      <header className="app-navigation">
+      <header className="app-navigation" data-tauri-drag-region>
         <a
           className="brand"
           href="#"
@@ -215,7 +216,6 @@ export default function App() {
           }}
           aria-label="Keylume ライティング"
         >
-          <img src="/logo.svg" alt="" />
           <span>Keylume</span>
         </a>
         <nav aria-label="メインナビゲーション">
@@ -239,31 +239,68 @@ export default function App() {
             </button>
           ))}
         </nav>
+        {!state.settings.setupComplete && (
+          <div className="setup-banner">
+            <button onClick={() => setSetup(true)}>
+              <Keyboard size={16} /> 実機のセットアップ
+            </button>
+            <button
+              className="icon-button"
+              aria-label="案内を閉じる"
+              onClick={() => saveSettings({ ...state.settings, setupComplete: true })}
+            >
+              <X size={12} />
+            </button>
+          </div>
+        )}
         <div className="navigation-utilities">
           <button className="help" onClick={() => setSetup(true)}>
             <CircleHelp size={17} />
             セットアップガイド
           </button>
-          <span>v{appVersion}</span>
+          <details className="sidebar-status">
+            <summary aria-label="接続状況">
+              <div className="connection">
+                <span className={'connection-dot ' + (state.paused ? 'paused' : '')} />
+                <span>
+                  {statusLabels[state.status.connection] ?? state.status.connection}
+                  <small>{state.settings.mock ? 'MockDevice' : 'Launchkey MK4 61'}</small>
+                </span>
+              </div>
+            </summary>
+            <div className="connection-details">
+              <span>
+                <span className="tiny-dot" />
+                {state.paused
+                  ? 'ライティング停止中'
+                  : state.status.connection === 'handoff'
+                    ? 'DAW にポートを解放中'
+                    : state.settings.mock
+                      ? '実機への送信なし · プレビュー'
+                      : 'バックグラウンドで動作中'}
+              </span>
+              <span>
+                {state.status.activeProfile ?? '手動プリセット'}
+                <i />
+                送信 {state.settings.fps} fps
+                <i />
+                {state.layout.leds.filter((l) => l.kind === 'rgb').length} RGB LED
+              </span>
+            </div>{' '}
+            <span>Keylume {appVersion}</span>
+          </details>
         </div>
       </header>
       <div className="app-content">
         <UpdateBanner updates={updates} />
-        <header className="app-header">
-          <div className="connection">
-            <span className={'connection-dot ' + (state.paused ? 'paused' : '')} />
-            <span>
-              {statusLabels[state.status.connection] ?? state.status.connection}
-              <small>{state.settings.mock ? 'MockDevice' : 'Launchkey MK4 61'}</small>
+        <header className="app-header" data-tauri-drag-region>
+          {page === 'lighting' ? (
+            <h1 data-tauri-drag-region>ホーム</h1>
+          ) : (
+            <span className="toolbar-location" data-tauri-drag-region>
+              {(settingsPages.find((s) => s.id === page) ?? pages.find((p) => p.id === page))?.name}
             </span>
-            {!native && <span className="browser-label">Browser preview</span>}
-          </div>
-          <button className="coexist-status" onClick={() => setPage('coexist')}>
-            <Radio size={14} />
-            {state.status.effectiveMode === 'handoff' ? 'DAW に譲る' : 'ライティング優先'}
-            <ChevronRight size={12} />
-          </button>
-          <div className="header-divider" />
+          )}
           {state.settings.controller.enabled && (
             <button
               className="mode-switch"
@@ -284,22 +321,6 @@ export default function App() {
                 : 'デスクトップモード'}
             </button>
           )}
-          <label className="master-brightness">
-            <Sun size={17} />
-            <span className="sr-only">マスター輝度</span>
-            <input
-              type="range"
-              min="0"
-              max="100"
-              value={Math.round(state.settings.masterBrightness * 100)}
-              onChange={(e) =>
-                saveSettings({ ...state.settings, masterBrightness: Number(e.target.value) / 100 })
-              }
-            />
-            <output className="numeric">
-              {Math.round(state.settings.masterBrightness * 100)}%
-            </output>
-          </label>
           <button
             className={'pause-button ' + (state.paused ? 'is-paused' : '')}
             onClick={() => void act('set_paused', { paused: !state.paused })}
@@ -307,26 +328,38 @@ export default function App() {
             {state.paused ? <Play size={15} /> : <Pause size={15} />}
             <span>{state.paused ? '再開' : '一時停止'}</span>
           </button>
+          <details className="device-options">
+            <summary aria-label="本体の操作" title="本体の操作">
+              <Ellipsis size={19} />
+            </summary>
+            <div className="device-options-menu">
+              <label className="master-brightness">
+                <Sun size={17} />
+                <span className="sr-only">マスター輝度</span>
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={Math.round(state.settings.masterBrightness * 100)}
+                  onChange={(e) =>
+                    saveSettings({
+                      ...state.settings,
+                      masterBrightness: Number(e.target.value) / 100,
+                    })
+                  }
+                />
+                <output className="numeric">
+                  {Math.round(state.settings.masterBrightness * 100)}%
+                </output>
+              </label>
+              <button className="coexist-status" onClick={() => setPage('coexist')}>
+                <Radio size={14} />
+                {state.status.effectiveMode === 'handoff' ? 'DAW に譲る' : 'ライティング優先'}
+                <ChevronRight size={12} />
+              </button>
+            </div>
+          </details>
         </header>
-        {!state.settings.setupComplete && (
-          <div className="setup-banner">
-            <span>
-              <Keyboard size={15} />
-              プレビューモード · 実機に接続するにはセットアップを開いてください。
-            </span>
-            <button onClick={() => setSetup(true)}>
-              セットアップ
-              <ChevronRight size={14} />
-            </button>
-            <button
-              className="icon-button"
-              aria-label="案内を閉じる"
-              onClick={() => saveSettings({ ...state.settings, setupComplete: true })}
-            >
-              <X size={14} />
-            </button>
-          </div>
-        )}
         <main className={'main-view ' + (page === 'lighting' ? 'editing' : '')}>
           {settingsPages.some((s) => s.id === page) && (
             <nav className="settings-navigation" aria-label="設定のカテゴリ">
@@ -357,25 +390,6 @@ export default function App() {
             <SettingsScreen {...props} updates={updates} onSetup={() => setSetup(true)} />
           )}
         </main>
-        <footer className="app-footer">
-          <span>
-            <span className="tiny-dot" />
-            {state.paused
-              ? 'ライティング停止中'
-              : state.status.connection === 'handoff'
-                ? 'DAW にポートを解放中'
-                : state.settings.mock
-                  ? '実機への送信なし · プレビュー'
-                  : 'バックグラウンドで動作中'}
-          </span>
-          <span>
-            {state.status.activeProfile ?? '手動プリセット'}
-            <i />
-            送信 {state.settings.fps} fps
-            <i />
-            {state.layout.leds.filter((l) => l.kind === 'rgb').length} RGB LED
-          </span>
-        </footer>
       </div>
       {notice && (
         <div role="status" className="toast">

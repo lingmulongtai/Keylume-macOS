@@ -4,6 +4,8 @@ test('live hardware controls, pedal and snapshots survive navigating the editor'
 }) => {
   await page.goto('/');
   await expect(page.getByRole('heading', { name: 'ホーム', exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'インスペクタ', exact: true }).click();
+  await expect(page.getByTestId('sustain-state')).toBeVisible();
   const fader = page.locator('.device-base [data-control="fader-1"]');
   await expect(fader).toHaveAttribute('data-value', 'unknown');
   await page.evaluate(async () => {

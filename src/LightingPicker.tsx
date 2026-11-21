@@ -15,7 +15,6 @@ export default function LightingPicker(props: ViewProps) {
         aria-expanded={expanded}
         onClick={() => setExpanded(!expanded)}
       >
-        <Miniature preset={state.preset} layout={state.layout} />
         <span>{state.preset.name}</span>
         <ChevronDown size={14} />
       </button>

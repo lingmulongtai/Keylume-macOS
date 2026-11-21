@@ -129,133 +129,137 @@ export default function Piano({
           {status.error}
         </p>
       )}
-      {p.sound === modeledGrandId && (
-        <fieldset className="piano-character">
-          <legend>グランドピアノの音作り</legend>
-          {(
-            [
-              ['felt', 'ハンマーの硬さ'],
-              ['decay', '弦の余韻'],
-              ['resonance', '共鳴の強さ'],
-            ] as const
-          ).map(([key, label]) => (
-            <Slider
-              key={key}
-              label={label}
-              value={p.character[key]}
-              onChange={(value) => update({ character: { ...p.character, [key]: value } })}
+      <div className="piano-disclosures">
+        {p.sound === modeledGrandId && (
+          <details className="voicing-details">
+            <summary>グランドピアノの音作り</summary>
+            <fieldset className="piano-character" aria-label="グランドピアノの音作り">
+              {(
+                [
+                  ['felt', 'ハンマーの硬さ'],
+                  ['decay', '弦の余韻'],
+                  ['resonance', '共鳴の強さ'],
+                ] as const
+              ).map(([key, label]) => (
+                <Slider
+                  key={key}
+                  label={label}
+                  value={p.character[key]}
+                  onChange={(value) => update({ character: { ...p.character, [key]: value } })}
+                />
+              ))}
+            </fieldset>
+          </details>
+        )}
+        <InstrumentEffects value={p.effects} change={(effects) => update({ effects })} />
+        <details className="piano-details">
+          <summary>音声と演奏の設定</summary>
+          <div className="piano-options">
+            <label className="field">
+              <span>音源ゲイン: +{p.gainDb ?? 0} dB</span>
+              <input
+                aria-label="音源ゲイン"
+                type="range"
+                min={0}
+                max={12}
+                step={1}
+                value={p.gainDb ?? 0}
+                onChange={(e) => update({ gainDb: Number(e.target.value) })}
+              />
+              <small>
+                小さい音源を補正します。まず +3 dB
+                から。上げすぎると強い和音が歪むため、出力メーターを確認してください。
+              </small>
+            </label>
+            <label className="field">
+              <span>音量を操作するフェーダー</span>
+              <select
+                aria-label="音量を操作するフェーダー"
+                value={p.volumeFader}
+                onChange={(e) => update({ volumeFader: Number(e.target.value) })}
+              >
+                <option value={0}>割り当てなし</option>
+                {Array.from({ length: 9 }, (_, i) => (
+                  <option value={i + 1} key={i}>
+                    フェーダー {i + 1}
+                    {i === 8 ? '（右端）' : ''}
+                  </option>
+                ))}
+              </select>
+              <small>
+                DAW
+                Volumeモードの位置を反映します。変更すると選んだフェーダーの既存の割り当てをピアノ音量に置き換えます。
+              </small>
+            </label>
+            <label className="field">
+              <span>ピアノの出力先</span>
+              <select
+                aria-label="ピアノの出力先"
+                value={p.outputDevice}
+                onChange={(e) => update({ outputDevice: e.target.value })}
+              >
+                <option value="">{systemName} の既定に自動追従</option>
+                {[
+                  ...new Set([
+                    ...state.status.audioDevices,
+                    ...(p.outputDevice ? [p.outputDevice] : []),
+                  ]),
+                ].map((d) => (
+                  <option key={d}>{d}</option>
+                ))}
+              </select>
+            </label>
+            <label className="field">
+              <span>音声バッファ</span>
+              <select
+                aria-label="音声バッファ"
+                value={p.bufferFrames}
+                onChange={(e) => update({ bufferFrames: Number(e.target.value) })}
+              >
+                {[128, 256, 512, 1024].map((n) => (
+                  <option key={n} value={n}>
+                    {n} samples{n === 128 ? ' · 小さい遅延' : n === 1024 ? ' · 安定性優先' : ''}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <Toggle
+              label="DAW 使用中はピアノを消音"
+              checked={p.muteWithDaw}
+              onChange={(muteWithDaw) => update({ muteWithDaw })}
             />
-          ))}
-        </fieldset>
-      )}
-      <InstrumentEffects value={p.effects} change={(effects) => update({ effects })} />
-      <details className="piano-details">
-        <summary>音声と演奏の設定</summary>
-        <div className="piano-options">
-          <label className="field">
-            <span>音源ゲイン: +{p.gainDb ?? 0} dB</span>
-            <input
-              aria-label="音源ゲイン"
-              type="range"
-              min={0}
-              max={12}
-              step={1}
-              value={p.gainDb ?? 0}
-              onChange={(e) => update({ gainDb: Number(e.target.value) })}
-            />
-            <small>
-              小さい音源を補正します。まず +3 dB
-              から。上げすぎると強い和音が歪むため、出力メーターを確認してください。
-            </small>
-          </label>
-          <label className="field">
-            <span>音量を操作するフェーダー</span>
-            <select
-              aria-label="音量を操作するフェーダー"
-              value={p.volumeFader}
-              onChange={(e) => update({ volumeFader: Number(e.target.value) })}
-            >
-              <option value={0}>割り当てなし</option>
-              {Array.from({ length: 9 }, (_, i) => (
-                <option value={i + 1} key={i}>
-                  フェーダー {i + 1}
-                  {i === 8 ? '（右端）' : ''}
-                </option>
-              ))}
-            </select>
-            <small>
-              DAW
-              Volumeモードの位置を反映します。変更すると選んだフェーダーの既存の割り当てをピアノ音量に置き換えます。
-            </small>
-          </label>
-          <label className="field">
-            <span>ピアノの出力先</span>
-            <select
-              aria-label="ピアノの出力先"
-              value={p.outputDevice}
-              onChange={(e) => update({ outputDevice: e.target.value })}
-            >
-              <option value="">{systemName} の既定に自動追従</option>
-              {[
-                ...new Set([
-                  ...state.status.audioDevices,
-                  ...(p.outputDevice ? [p.outputDevice] : []),
-                ]),
-              ].map((d) => (
-                <option key={d}>{d}</option>
-              ))}
-            </select>
-          </label>
-          <label className="field">
-            <span>音声バッファ</span>
-            <select
-              aria-label="音声バッファ"
-              value={p.bufferFrames}
-              onChange={(e) => update({ bufferFrames: Number(e.target.value) })}
-            >
-              {[128, 256, 512, 1024].map((n) => (
-                <option key={n} value={n}>
-                  {n} samples{n === 128 ? ' · 小さい遅延' : n === 1024 ? ' · 安定性優先' : ''}
-                </option>
-              ))}
-            </select>
-          </label>
-          <Toggle
-            label="DAW 使用中はピアノを消音"
-            checked={p.muteWithDaw}
-            onChange={(muteWithDaw) => update({ muteWithDaw })}
-          />
-          <p>
-            鍵盤入力: {state.status.keyboard || '未接続'}
-            <br />
-            {status.sampleRate > 0 &&
-              `${status.device} · ${status.sampleRate / 1000} kHz · 実測バッファ ${status.bufferFrames} samples`}
-          </p>
-          <p>
-            本体の Octave ボタンで変えた音程はそのまま演奏できます。上の Octave
-            はピアノ音源への追加移調です。変更時は発音中の音を止めます。ペダルは本体の標準サステイン設定（CC64）で使用してください。
-          </p>
-          <p>
-            画面の鍵盤もクリック・Enter / Space
-            で演奏できます。ライティングを停止しても、ウィンドウを閉じてもピアノは動作します。音切れがある場合はバッファを大きくしてください。DAW
-            に譲るモードでは鍵盤入力も解放します。
-          </p>
-          <p className="piano-credit">
-            {p.sound === modeledGrandId ? (
-              'Keylume 物理モデリング・ピアノ · 48音ポリフォニー'
-            ) : (
-              <>
-                {p.sound.startsWith('generaluser:')
-                  ? 'GeneralUser GS · License v2.0'
-                  : p.sound.startsWith('user:')
-                    ? '持ち込みSoundFont'
-                    : `${pianoSounds.find((s) => s.id === p.sound)?.credit} · CC0 1.0`}{' '}
-                · 128音ポリフォニー
-              </>
-            )}
-          </p>
-        </div>
-      </details>
+            <p>
+              鍵盤入力: {state.status.keyboard || '未接続'}
+              <br />
+              {status.sampleRate > 0 &&
+                `${status.device} · ${status.sampleRate / 1000} kHz · 実測バッファ ${status.bufferFrames} samples`}
+            </p>
+            <p>
+              本体の Octave ボタンで変えた音程はそのまま演奏できます。上の Octave
+              はピアノ音源への追加移調です。変更時は発音中の音を止めます。ペダルは本体の標準サステイン設定（CC64）で使用してください。
+            </p>
+            <p>
+              画面の鍵盤もクリック・Enter / Space
+              で演奏できます。ライティングを停止しても、ウィンドウを閉じてもピアノは動作します。音切れがある場合はバッファを大きくしてください。DAW
+              に譲るモードでは鍵盤入力も解放します。
+            </p>
+            <p className="piano-credit">
+              {p.sound === modeledGrandId ? (
+                'Keylume 物理モデリング・ピアノ · 48音ポリフォニー'
+              ) : (
+                <>
+                  {p.sound.startsWith('generaluser:')
+                    ? 'GeneralUser GS · License v2.0'
+                    : p.sound.startsWith('user:')
+                      ? '持ち込みSoundFont'
+                      : `${pianoSounds.find((s) => s.id === p.sound)?.credit} · CC0 1.0`}{' '}
+                  · 128音ポリフォニー
+                </>
+              )}
+            </p>
+          </div>
+        </details>
+      </div>
       {libraryOpen && (
         <Modal title="音源を選ぶ" wide onClose={() => setLibraryOpen(false)}>
           <SoundLibrary state={state} saveSettings={saveSettings} toast={toast} />

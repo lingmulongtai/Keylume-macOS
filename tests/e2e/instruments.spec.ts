@@ -11,6 +11,7 @@ test('sound cards filter by family and favorites while drum edits survive kit ch
   await expect(page.locator('.sound-card')).toHaveCount(5);
   await page.locator('.sound-select').filter({ hasText: 'Modeled Grand' }).click();
   await page.keyboard.press('Escape');
+  await page.getByText('グランドピアノの音作り', { exact: true }).click();
   await page.getByRole('slider', { name: 'ハンマーの硬さ' }).fill('0.72');
   await page.getByRole('button', { name: '演奏', exact: true }).click();
   await page.getByText('パッドドラムとルーパー', { exact: true }).click();
@@ -33,6 +34,7 @@ test('sound cards filter by family and favorites while drum edits survive kit ch
     )
     .toBe(-0.5);
   await page.reload();
+  await page.getByText('グランドピアノの音作り', { exact: true }).click();
   await expect(page.getByRole('slider', { name: 'ハンマーの硬さ' })).toHaveValue('0.72');
   await page.getByRole('button', { name: '演奏', exact: true }).click();
   await page.getByText('パッドドラムとルーパー', { exact: true }).click();

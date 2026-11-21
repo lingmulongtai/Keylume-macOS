@@ -13,6 +13,7 @@ import {
   Save,
   Minus,
   Maximize2,
+  PanelRight,
 } from 'lucide-react';
 import type { ViewProps } from './ui-state';
 import type { Layer, Zone, Blend } from './types';
@@ -31,6 +32,7 @@ export default function Editor({
   onSave,
   saveSettings,
 }: ViewProps & { onSave: () => void }) {
+  const [inspecting, setInspecting] = useState(false);
   const [playbackKeys, setPlaybackKeys] = useState<number[]>([]);
   const [selected, setSelected] = useState<string[]>([]),
     [selectedLayer, setSelectedLayer] = useState(state.preset.layers[0]?.id ?? ''),
@@ -87,25 +89,23 @@ export default function Editor({
     change({ ...state.preset, layers });
   };
   return (
-    <div className="editor-grid">
+    <div className={'editor-grid' + (inspecting ? ' inspecting' : '')}>
       <section className="editor-main">
         <div className="workspace-top">
-          <div>
-            <h1>ホーム</h1>
-          </div>
-          <LightingPicker
-            state={state}
-            act={act}
-            edit={edit}
-            toast={toast}
-            saveSettings={saveSettings}
-          />
+          <h2>Launchkey MK4 61</h2>
+          <button
+            className="inspector-switch"
+            aria-controls="lighting-inspector"
+            aria-expanded={inspecting}
+            onClick={() => {
+              setPaint(false);
+              setInspecting(!inspecting);
+            }}
+          >
+            <PanelRight size={16} /> インスペクタ
+          </button>
         </div>
         <div className="device-stage">
-          <div className="stage-label">
-            <span>Launchkey MK4 61</span>
-            <small>61鍵モデル · 上面</small>
-          </div>
           <div className="stage-tools">
             <button
               className={'icon-button ' + (!paint ? 'active' : '')}
@@ -134,7 +134,10 @@ export default function Editor({
             playbackKeys={playbackKeys}
             state={state}
             selected={selected}
-            onSelect={setSelected}
+            onSelect={(ids) => {
+              setSelected(ids);
+              if (ids.length) setInspecting(true);
+            }}
             paint={paint}
             onPaint={paintLeds}
             zoom={zoom}
@@ -146,12 +149,7 @@ export default function Editor({
             }}
           />
           <div className="stage-bottom">
-            <span>
-              <span className="tiny-dot" />{' '}
-              {state.settings.mock ? 'プレビュー中' : '実機からのフレーム'}
-              <i />
-              {selected.length} LED 選択
-            </span>
+            <span>{selected.length} LED 選択</span>
             <div>
               <button
                 className="icon-button"
@@ -180,6 +178,25 @@ export default function Editor({
         </div>
         <HomeDemo state={state} act={act} toast={toast} onKeys={setPlaybackKeys} />
         <Piano state={state} saveSettings={saveSettings} toast={toast} />
+        <div className="lighting-actions">
+          <h3>ライティング</h3>
+          <LightingPicker
+            state={state}
+            act={act}
+            edit={edit}
+            toast={toast}
+            saveSettings={saveSettings}
+          />
+          <button
+            className="subtle"
+            onClick={() => {
+              setAdding(true);
+              setInspecting(true);
+            }}
+          >
+            <Plus size={15} /> レイヤーを追加
+          </button>
+        </div>
         <div className="zones">
           <span>ゾーン</span>
           {Object.entries(zones)
@@ -222,10 +239,6 @@ export default function Editor({
                 }}
               >
                 <Undo2 size={16} />
-              </button>
-              <button className="subtle" onClick={() => setAdding(true)}>
-                <Plus size={15} />
-                レイヤーを追加
               </button>
             </div>
           </div>
@@ -301,10 +314,19 @@ export default function Editor({
           </div>
         </div>
       </section>
-      <aside className="inspector">
+      <aside className="inspector" id="lighting-inspector" hidden={!inspecting}>
         <div className="inspector-title">
           <span>インスペクタ</span>
-          <span className="micro">ライブ編集</span>
+          <button
+            className="icon-button"
+            aria-label="インスペクタを閉じる"
+            onClick={() => {
+              setPaint(false);
+              setInspecting(false);
+            }}
+          >
+            <PanelRight size={16} />
+          </button>
         </div>
         {layer ? (
           <>
