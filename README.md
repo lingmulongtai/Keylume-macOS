@@ -8,14 +8,16 @@ Launchkey MK4 61 向けの非公式ライティングコントローラー＆常
 
 macOS 13.3 以降の Apple Silicon／Intel に対応します。どちらの形式でも同じ Keylume を使えます。
 
-- **PKG** を開き、インストーラの案内に従うと `/Applications/Keylume.app` がインストールされます。[PKG をダウンロード](https://github.com/lingmulongtai/Keylume-macOS/releases/download/v0.8.0/Keylume_0.8.0_universal.pkg)
-- **DMG** を開き、`Keylume.app` を「アプリケーション」にドラッグしてください。[DMG をダウンロード](https://github.com/lingmulongtai/Keylume-macOS/releases/download/v0.8.0/Keylume_0.8.0_universal.dmg)
+- **PKG** を開き、インストーラの案内に従うと `/Applications/Keylume.app` がインストールされます。[PKG をダウンロード](https://github.com/lingmulongtai/Keylume-macOS/releases/download/v0.8.2/Keylume_0.8.2_universal.pkg)
+- **DMG** を開き、`Keylume.app` を「アプリケーション」にドラッグしてください。[DMG をダウンロード](https://github.com/lingmulongtai/Keylume-macOS/releases/download/v0.8.2/Keylume_0.8.2_universal.dmg)
 
 PKG は未署名です。両形式のアプリはアドホック署名済みで、Apple の公証は受けていません。
 
 Windows 版は [Keylume](https://github.com/lingmulongtai/Keylume) で開発・配布しています。
 
-![ライティング画面](docs/images/v050-lighting.png)
+サイドバーや再生操作の背景には、macOS 26 以降で Liquid Glass、以前の macOS では半透明のシステム素材を使います。画面はライト・ダークの外観と「透明度を下げる」設定に合わせて切り替わります。
+
+![Mac版ホームで Modeled Grand のデモを再生している画面](docs/images/macos-glass-home.png)
 
 1. 起動してデバイスプレビューを確認します。
 2. 「設定 → デバイス」で **MockDevice でプレビュー** を OFF にすると、Launchkey MK4 61 の DAW ポートを探します。
@@ -27,7 +29,7 @@ Windows 版は [Keylume](https://github.com/lingmulongtai/Keylume) で開発・�
 
 ## ホームで音源を試す
 
-「テスト演奏」でデモ曲を選んで再生すると、その音源の演奏に合わせて鍵盤が動きます。内蔵曲は静かな分散和音の **Rain on Glass**、スウィングの **Pocket Swing**、三拍子の **Lantern Waltz**。自分のMIDIファイルも読み込めます。ホームと「演奏」タブは同じ曲と再生位置を使います。別の曲を選ぶと、読み込み中の曲が切り替わります。物理モデリング音源を試すには「選ぶ」で **Modeled Grand** に切り替えてください。
+「テスト演奏」でデモ曲を選んで再生すると、その音源の演奏に合わせて鍵盤が動きます。内蔵曲は静かな分散和音の **Rain on Glass**、スウィングの **Pocket Swing**、三拍子の **Lantern Waltz**。自分のMIDIファイルを開くと、ファイル名から曲名が入ります。そのまま確定するか、好きな曲名に変更できます。ホームと「演奏」タブは同じ曲と再生位置を使います。別の曲を選ぶと、読み込み中の曲が切り替わります。物理モデリング音源を試すには「選ぶ」で **Modeled Grand** に切り替えてください。
 
 ## ピアノを弾く
 
