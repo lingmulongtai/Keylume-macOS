@@ -24,7 +24,7 @@ use std::{
 use tauri::{
     menu::{Menu, MenuItem, Submenu},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
-    Manager, WebviewUrl, WebviewWindowBuilder,
+    Manager, WebviewWindowBuilder,
 };
 use updater::Updater;
 
@@ -32,12 +32,8 @@ fn show(app: &tauri::AppHandle) {
     if let Some(w) = app.get_webview_window("main") {
         let _ = w.show();
         let _ = w.set_focus();
-    } else {
-        let _ = WebviewWindowBuilder::new(app, "main", WebviewUrl::App("index.html".into()))
-            .title("Keylume")
-            .inner_size(1280., 800.)
-            .min_inner_size(1024., 680.)
-            .build();
+    } else if let Some(main) = app.config().app.windows.iter().find(|w| w.label == "main") {
+        let _ = WebviewWindowBuilder::from_config(app, main).and_then(|builder| builder.build());
     }
 }
 #[tauri::command]
@@ -479,6 +475,18 @@ pub fn run() {
         .nth(1)
         .map(PathBuf::from);
     let builder = tauri::Builder::default();
+    #[cfg(target_os = "macos")]
+    let builder = builder.on_page_load(|webview, _| {
+        if webview.label() == "main" {
+            let _ = webview.with_webview(|platform| {
+                extern "C" {
+                    fn keylume_install_main_material(webview: *mut std::ffi::c_void);
+                }
+                // Tauri supplies the live WKWebView on the AppKit main thread.
+                unsafe { keylume_install_main_material(platform.inner()) };
+            });
+        }
+    });
     // Isolated MockDevice checks must not activate or exit an already running app.
     let builder = if smoke_report.is_some() {
         builder

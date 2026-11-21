@@ -2,11 +2,16 @@ fn main() {
     if std::env::var_os("CARGO_FEATURE_DESKTOP").is_some() {
         #[cfg(target_os = "macos")]
         if std::env::var("CARGO_CFG_TARGET_OS").as_deref() == Ok("macos") {
-            for source in ["src/desktop/mac_controls.m", "src/desktop/mac_system.m"] {
+            let sources = [
+                "src/desktop/mac_controls.m",
+                "src/desktop/mac_system.m",
+                "src/desktop/mac_material.m",
+            ];
+            for source in sources {
                 println!("cargo:rerun-if-changed={source}");
             }
             cc::Build::new()
-                .files(["src/desktop/mac_controls.m", "src/desktop/mac_system.m"])
+                .files(sources)
                 .flag("-fobjc-arc")
                 .compile("keylume_macos");
             for framework in ["AppKit", "ApplicationServices", "CoreAudio", "AudioToolbox"] {
