@@ -28,8 +28,9 @@ jobs:
       - name: Verify universal app and native self-test
         run: |
           app=src-tauri/target/universal-apple-darwin/release/bundle/macos/Keylume.app
+          architectures=$(lipo -archs "$app/Contents/MacOS/keylume")
           for architecture in arm64 x86_64; do
-            lipo -verify_arch "$architecture" "$app/Contents/MacOS/keylume"
+            [[ " $architectures " == *" $architecture "* ]]
           done
           codesign --verify --deep --strict "$app"
           "$app/Contents/MacOS/keylume" --self-test "$RUNNER_TEMP/keylume-report.json"
