@@ -6,7 +6,12 @@ Launchkey MK4 61 向けの非公式ライティングコントローラー＆常
 
 ## 起動
 
-[Mac Universal DMG](https://github.com/lingmulongtai/Keylume-macOS/releases/download/v0.8.0/Keylume_0.8.0_universal.dmg)を開き、`Keylume.app` を「アプリケーション」にドラッグして起動してください。macOS 13.3 以降の Apple Silicon／Intel に対応します。アプリはアドホック署名されています。Apple による公証は受けていません。
+macOS 13.3 以降の Apple Silicon／Intel に対応します。どちらの形式でも同じ Keylume を使えます。
+
+- **PKG** を開き、インストーラの案内に従うと `/Applications/Keylume.app` がインストールされます。[PKG をダウンロード](https://github.com/lingmulongtai/Keylume-macOS/releases/download/v0.8.0/Keylume_0.8.0_universal.pkg)
+- **DMG** を開き、`Keylume.app` を「アプリケーション」にドラッグしてください。[DMG をダウンロード](https://github.com/lingmulongtai/Keylume-macOS/releases/download/v0.8.0/Keylume_0.8.0_universal.dmg)
+
+PKG は未署名です。両形式のアプリはアドホック署名済みで、Apple の公証は受けていません。
 
 Windows 版は [Keylume](https://github.com/lingmulongtai/Keylume) で開発・配布しています。
 
@@ -73,7 +78,7 @@ Mac でキー操作やスクロールを使う場合は「システム設定 →
 
 ## 更新
 
-**v0.1.0からはv0.7.0を一度手動でインストールしてください。** v0.2以降は新しいWindows版を検出すると、アプリ内またはトレイ常駐時に案内します。Mac 版は Universal DMG を含む新しいリリースを案内します。「更新ページを開く」からダウンロードしてインストールできます。自動確認は設定でオフにできます。[更新確認の詳細](docs/updates.md)
+**v0.1.0からはv0.7.0を一度手動でインストールしてください。** v0.2以降は新しいWindows版を検出すると、アプリ内またはトレイ常駐時に案内します。Mac 版は Universal DMG を含む新しいリリースを案内します。「更新ページを開く」から PKG または DMG を選んで更新できます。自動確認は設定でオフにできます。[更新確認の詳細](docs/updates.md)
 
 プリセットと設定はそのまま保持します。旧既定レイアウトは61鍵モデルの配置へ移行し、LEDアドレス・種類・検証状態を保持します。座標を編集したカスタムレイアウトは維持します。[本体図と移行仕様](docs/device-layout.md)
 
@@ -103,18 +108,19 @@ npm run package      # Mac は .app と DMG、Windows は NSIS インストー�
 
 ブラウザー版は実機 MIDI、ピアノの発音、OS プロセス監視、音声ループバック、自動起動を行いません。保存先も native 版とは独立した localStorage です。実機と同じフレームを表示するのはデスクトップ版です。
 
-Mac で両方の CPU に対応する版を作る場合は、次を実行します。DMG は `src-tauri/target/universal-apple-darwin/release/bundle/dmg/` に生成されます。
+Mac で Universal 版をビルドし、DMG と同じアプリから PKG を作成します。DMG は `src-tauri/target/universal-apple-darwin/release/bundle/dmg/`、下記の PKG は `artifacts/release/` に生成されます。
 
 ```sh
 rustup target add aarch64-apple-darwin x86_64-apple-darwin
 npm run package -- --target universal-apple-darwin
+bash scripts/package-macos-pkg.sh src-tauri/target/universal-apple-darwin/release/bundle/macos/Keylume.app artifacts/release
 ```
 
 ## 検証
 
 前回の確認範囲は [v0.6.1検証記録](docs/verification-v0.6.1.md)、その前の確認とコミット一覧は [v0.6.0検証記録](docs/verification-v0.6.0.md)、機能全体の記録は [v0.5.0検証記録](docs/verification-v0.5.0.md) にまとめています。掲載画像はv0.5.0のUIのブラウザープレビューです。
 
-GitHub Actions はこのリポジトリで macOS 版をビルドして自己テストを実行します。`main` に含まれる `v*` タグが検証を通過すると、このリポジトリの Releases に配布物を公開します。
+GitHub Actions はこのリポジトリで macOS 版をビルドして自己テストを実行します。CI は PKG と DMG を `artifacts/release/` にまとめます。`main` に含まれる `v*` タグが検証を通過すると、このリポジトリの Releases に両方を公開します。
 
 ```powershell
 npm test
