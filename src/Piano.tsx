@@ -1,7 +1,7 @@
 import { systemName } from './platform';
-import { useEffect, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 import { Power, Minus, Plus, Volume2, Square } from 'lucide-react';
-import { command, getPianoState, native, subscribe } from './api';
+import { command, getPianoState, subscribe } from './api';
 import type { PianoStatus, PianoSettings } from './types';
 import type { ViewProps } from './ui-state';
 import { Modal, Slider, Toggle } from './components';
@@ -56,73 +56,91 @@ export default function Piano({
   const p = state.settings.piano;
   const update = (change: Partial<PianoSettings>) =>
     saveSettings({ ...state.settings, piano: { ...p, ...change } });
-  const label = !native
-    ? 'デスクトップ版で発音'
-    : !p.enabled
-      ? 'オフ'
-      : status.muted
-        ? state.settings.controller.enabled && state.settings.controller.mode === 'desktop'
+  const powerStatusId = useId();
+  let powerLabel = 'オフ';
+  let powerDescription = 'ピアノの電源はオフです';
+  if (p.enabled) {
+    if (status.state === 'error') {
+      powerLabel = '出力エラー';
+      powerDescription = status.error || '出力先を確認してください';
+    } else if (status.muted) {
+      powerLabel = '消音中';
+      powerDescription =
+        state.settings.controller.enabled && state.settings.controller.mode === 'desktop'
           ? 'デスクトップ操作中は消音'
-          : 'DAW / スリープ中は消音'
-        : status.state === 'ready'
-          ? '演奏できます'
-          : status.state === 'error'
-            ? '出力先を確認してください'
-            : '音源を準備中…';
+          : 'DAW / スリープ中は消音';
+    } else if (status.state === 'ready' || status.state === 'preview') {
+      powerLabel = 'オン';
+      powerDescription =
+        status.state === 'ready' ? '演奏できます' : 'プレビュー中です。デスクトップ版で発音します';
+    } else {
+      powerLabel = '準備中';
+      powerDescription = '音源を準備しています';
+    }
+  }
   return (
     <section className="piano-panel" aria-label="内蔵ピアノ">
       <div className="piano-strip">
-        <button
-          className={`piano-power ${p.enabled ? 'active' : ''}`}
-          aria-label={p.enabled ? 'ピアノをオフ' : 'ピアノをオン'}
-          aria-pressed={p.enabled}
-          onClick={() => update({ enabled: !p.enabled })}
-        >
-          <Power size={18} />
-        </button>
-        <div className="piano-name">
+        <div className="piano-source">
           <button
-            className="instrument-picker"
-            aria-label="音源を選ぶ"
-            onClick={() => setLibraryOpen(true)}
+            className={`piano-power ${p.enabled ? 'active' : ''}`}
+            aria-label={p.enabled ? 'ピアノをオフ' : 'ピアノをオン'}
+            aria-pressed={p.enabled}
+            aria-describedby={powerStatusId}
+            title={powerDescription}
+            onClick={() => update({ enabled: !p.enabled })}
           >
-            {soundName(p.sound)} <span>選ぶ</span>
+            <Power size={16} aria-hidden="true" />
+            <span id={powerStatusId} role="status">
+              {powerLabel}
+            </span>
           </button>
-          <small>{label}</small>
+          <div className="piano-name" role="group" aria-label="選択中の音源">
+            <strong title={soundName(p.sound)}>{soundName(p.sound)}</strong>
+            <button
+              className="instrument-picker"
+              aria-label="音源を選ぶ"
+              onClick={() => setLibraryOpen(true)}
+            >
+              選ぶ
+            </button>
+          </div>
         </div>
-        <div className="piano-volume">
-          <Volume2 size={16} />
-          <Slider label="ピアノ音量" value={p.volume} onChange={(volume) => update({ volume })} />
-        </div>
-        <div className="octave-control">
-          <span>Octave</span>
+        <div className="piano-performance">
+          <div className="piano-volume">
+            <Volume2 size={16} />
+            <Slider label="ピアノ音量" value={p.volume} onChange={(volume) => update({ volume })} />
+          </div>
+          <div className="octave-control">
+            <span>Octave</span>
+            <button
+              aria-label="ピアノを1オクターブ下げる"
+              disabled={p.octave <= -3}
+              onClick={() => update({ octave: p.octave - 1 })}
+            >
+              <Minus size={14} />
+            </button>
+            <output aria-label="ピアノのオクターブ">
+              {p.octave > 0 ? '+' : ''}
+              {p.octave}
+            </output>
+            <button
+              aria-label="ピアノを1オクターブ上げる"
+              disabled={p.octave >= 3}
+              onClick={() => update({ octave: p.octave + 1 })}
+            >
+              <Plus size={14} />
+            </button>
+          </div>
+          <meter aria-label="ピアノ出力レベル" min={0} max={1} value={status.peak} />
           <button
-            aria-label="ピアノを1オクターブ下げる"
-            disabled={p.octave <= -3}
-            onClick={() => update({ octave: p.octave - 1 })}
+            className="piano-panic"
+            onClick={() => void command('piano_panic').catch((e) => toast(String(e)))}
           >
-            <Minus size={14} />
-          </button>
-          <output aria-label="ピアノのオクターブ">
-            {p.octave > 0 ? '+' : ''}
-            {p.octave}
-          </output>
-          <button
-            aria-label="ピアノを1オクターブ上げる"
-            disabled={p.octave >= 3}
-            onClick={() => update({ octave: p.octave + 1 })}
-          >
-            <Plus size={14} />
+            <Square size={13} />
+            全音停止
           </button>
         </div>
-        <meter aria-label="ピアノ出力レベル" min={0} max={1} value={status.peak} />
-        <button
-          className="piano-panic"
-          onClick={() => void command('piano_panic').catch((e) => toast(String(e)))}
-        >
-          <Square size={13} />
-          全音停止
-        </button>
       </div>
       {p.enabled && status.error && (
         <p className="piano-error" role="alert">

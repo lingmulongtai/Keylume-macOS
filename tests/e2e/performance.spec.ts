@@ -47,7 +47,12 @@ test('live hardware controls, pedal and snapshots survive navigating the editor'
 
 test('piano preferences persist and screen keys release on focus loss', async ({ page }) => {
   await page.goto('/');
-  await page.getByRole('button', { name: 'ピアノをオン', exact: true }).click();
+  const power = page.getByRole('button', { name: 'ピアノをオン', exact: true });
+  await expect(power.getByRole('status')).toHaveText('オフ');
+  await power.click();
+  await expect(
+    page.getByRole('button', { name: 'ピアノをオフ', exact: true }).getByRole('status'),
+  ).toHaveText('オン');
   await page.getByRole('button', { name: 'ピアノを1オクターブ上げる' }).click();
   await expect(page.getByLabel('ピアノのオクターブ', { exact: true })).toHaveText('+1');
   await page.getByLabel('ピアノ音量', { exact: true }).fill('0.3');
@@ -68,7 +73,7 @@ test('piano preferences persist and screen keys release on focus loss', async ({
     'true',
   );
   await expect(page.getByLabel('ピアノのオクターブ', { exact: true })).toHaveText('+1');
-  await expect(page.getByRole('button', { name: '音源を選ぶ', exact: true })).toContainText(
+  await expect(page.getByRole('group', { name: '選択中の音源', exact: true })).toContainText(
     'FM Electric Piano',
   );
   const key = page.getByRole('button', { name: '鍵盤 60（ピアノ）', exact: true });

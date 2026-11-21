@@ -342,29 +342,79 @@
   padding-inline: 9px;
 }
 .piano-panel {
+  container: piano / inline-size;
   background: transparent;
   border: 0;
-  padding: 19px 0 0;
+  padding: 18px 0 0;
 }
 .piano-strip {
-  gap: 14px;
+  display: grid;
+  grid-template-columns: minmax(225px, 2fr) minmax(360px, 3fr);
+  align-items: center;
+  gap: 16px 20px;
 }
-.piano-name strong,
-.instrument-picker {
+.piano-source,
+.piano-performance {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+}
+.piano-name {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.piano-name strong {
   font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-.piano-name small {
-  font-size: 11px;
+.instrument-picker {
+  flex-shrink: 0;
+  padding: 3px 7px;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--muted);
 }
-.piano-volume .field {
-  margin-bottom: 0;
+.piano-performance .piano-volume {
+  flex: 1;
+  min-width: 90px;
+  max-width: none;
+}
+.piano-performance :is(.octave-control, meter, .piano-panic) {
+  flex-shrink: 0;
+}
+.piano-performance .piano-volume .field {
+  margin: 0;
+}
+.piano-performance .piano-volume .field input {
+  display: block;
+  margin: 0;
 }
 .piano-disclosures {
   display: flex;
   flex-wrap: wrap;
   align-items: flex-start;
-  column-gap: 20px;
+  gap: 8px 20px;
   margin-top: 16px;
+  border-top: 1px solid var(--line);
+  padding-top: 16px;
+}
+@container piano (max-width: 700px) {
+  .piano-strip {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .piano-performance .piano-volume {
+    max-width: 220px;
+  }
+  .piano-disclosures .effect-knobs {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
 }
 .piano-disclosures details {
   margin: 0;
@@ -377,7 +427,8 @@
 .piano-disclosures summary {
   cursor: pointer;
   color: var(--muted);
-  padding: 5px 0;
+  padding: 0;
+  line-height: 20px;
   font-size: 12px;
 }
 .piano-character {
@@ -539,9 +590,18 @@ select option {
   color: var(--text);
 }
 .piano-power {
-  border-radius: 50%;
-  width: 32px;
-  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  flex: 0 0 auto;
+  gap: 6px;
+  padding: 0 8px;
+  min-width: 62px;
+  width: auto;
+  height: 30px;
+  border-radius: 6px;
+  white-space: nowrap;
+  font-size: 12px;
 }
 .piano-power.active {
   background: var(--selection);
