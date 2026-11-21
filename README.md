@@ -8,8 +8,8 @@ Launchkey MK4 61 向けの非公式ライティングコントローラー＆常
 
 macOS 13.3 以降の Apple Silicon／Intel に対応します。どちらの形式でも同じ Keylume を使えます。
 
-- **PKG** を開き、インストーラの案内に従うと `/Applications/Keylume.app` がインストールされます。[PKG をダウンロード](https://github.com/lingmulongtai/Keylume-macOS/releases/download/v0.8.2/Keylume_0.8.2_universal.pkg)
-- **DMG** を開き、`Keylume.app` を「アプリケーション」にドラッグしてください。[DMG をダウンロード](https://github.com/lingmulongtai/Keylume-macOS/releases/download/v0.8.2/Keylume_0.8.2_universal.dmg)
+- **PKG** を開き、インストーラの案内に従うと `/Applications/Keylume.app` がインストールされます。[PKG をダウンロード](https://github.com/lingmulongtai/Keylume-macOS/releases/download/v0.8.3/Keylume_0.8.3_universal.pkg)
+- **DMG** を開き、`Keylume.app` を「アプリケーション」にドラッグしてください。[DMG をダウンロード](https://github.com/lingmulongtai/Keylume-macOS/releases/download/v0.8.3/Keylume_0.8.3_universal.dmg)
 
 PKG は未署名です。両形式のアプリはアドホック署名済みで、Apple の公証は受けていません。
 
