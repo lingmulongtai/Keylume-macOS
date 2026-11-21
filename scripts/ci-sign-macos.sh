@@ -18,7 +18,7 @@ while IFS= read -r path; do
 done < <(sed -E 's/^[[:space:]]*"//; s/"[[:space:]]*$//' <<< "$original_keychains")
 cleanup() {
   security delete-keychain "$keychain" >/dev/null 2>&1 || true
-  security list-keychains "${search_list[@]}" >/dev/null
+  security list-keychains "${search_list[@]}" >/dev/null || true
   rm -rf "$work"
 }
 trap cleanup EXIT
