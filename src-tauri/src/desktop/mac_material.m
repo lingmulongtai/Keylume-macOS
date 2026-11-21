@@ -6,7 +6,10 @@
 @property CGFloat cornerRadius;
 @end
 
-static NSView *mainMaterial(NSRect frame) {
+// This is the fixed navigation width in mac-glass.css, in logical points.
+static const CGFloat sidebarWidth = 204;
+
+static NSView *sidebarMaterial(NSRect frame) {
     if (@available(macOS 26.0, *)) {
         Class glassClass = NSClassFromString(@"NSGlassEffectView");
         if (glassClass) {
@@ -16,7 +19,7 @@ static NSView *mainMaterial(NSRect frame) {
         }
     }
     NSVisualEffectView *effect = [[NSVisualEffectView alloc] initWithFrame:frame];
-    effect.material = NSVisualEffectMaterialUnderWindowBackground;
+    effect.material = NSVisualEffectMaterialSidebar;
     effect.blendingMode = NSVisualEffectBlendingModeBehindWindow;
     return effect;
 }
@@ -51,6 +54,13 @@ static NSView *mainMaterial(NSRect frame) {
     return nil;
 }
 
+- (void)drawRect:(NSRect)dirtyRect {
+    NSRect sidebar, workspace;
+    NSDivideRect(self.bounds, &sidebar, &workspace, sidebarWidth, NSMinXEdge);
+    [NSColor.windowBackgroundColor setFill];
+    NSRectFill(NSIntersectionRect(workspace, dirtyRect));
+}
+
 - (void)updateMaterial {
     NSWindow *window = self.window;
     BOOL reduced = NSWorkspace.sharedWorkspace.accessibilityDisplayShouldReduceTransparency;
@@ -62,8 +72,10 @@ static NSView *mainMaterial(NSRect frame) {
     window.opaque = reduced;
     window.backgroundColor = reduced ? NSColor.windowBackgroundColor : NSColor.clearColor;
     if (!reduced) {
-        NSView *effect = mainMaterial(self.bounds);
-        effect.autoresizingMask = NSViewWidthSizable | NSViewHeightSizable;
+        NSRect sidebar, workspace;
+        NSDivideRect(self.bounds, &sidebar, &workspace, sidebarWidth, NSMinXEdge);
+        NSView *effect = sidebarMaterial(sidebar);
+        effect.autoresizingMask = NSViewHeightSizable;
         [self addSubview:effect];
     }
 }
