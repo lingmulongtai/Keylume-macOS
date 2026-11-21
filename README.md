@@ -11,7 +11,7 @@ macOS 13.3 以降の Apple Silicon／Intel に対応します。どちらの形�
 - **PKG** を開き、インストーラの案内に従うと `/Applications/Keylume.app` がインストールされます。[PKG をダウンロード](https://github.com/lingmulongtai/Keylume-macOS/releases/download/v0.8.3/Keylume_0.8.3_universal.pkg)
 - **DMG** を開き、`Keylume.app` を「アプリケーション」にドラッグしてください。[DMG をダウンロード](https://github.com/lingmulongtai/Keylume-macOS/releases/download/v0.8.3/Keylume_0.8.3_universal.dmg)
 
-PKG は未署名です。両形式のアプリはアドホック署名済みで、Apple の公証は受けていません。
+公開中の v0.8.3 Preview は、PKG が未署名、アプリがアドホック署名です。Apple の公証も未取得のため、ダウンロード後に macOS がインストールや起動を止めることがあります。
 
 Windows 版は [Keylume](https://github.com/lingmulongtai/Keylume) で開発・配布しています。
 
@@ -118,11 +118,34 @@ npm run package -- --target universal-apple-darwin
 bash scripts/package-macos-pkg.sh src-tauri/target/universal-apple-darwin/release/bundle/macos/Keylume.app artifacts/release
 ```
 
+### Mac 配布版の署名と公証
+
+配布には、同じ Apple Developer Program チームの `Developer ID Application` と `Developer ID Installer` の証明書と、それぞれに対応する秘密鍵を使います。アプリと DMG は前者、PKG は後者で署名します。[Apple の証明書発行手順](https://developer.apple.com/help/account/certificates/create-developer-id-certificates/)
+
+ローカルで配布物を作る場合は、両方の証明書をキーチェーンに登録し、初回に `xcrun notarytool store-credentials keylume-notary` で公証用の認証情報を保存してください。以下の証明書名はキーチェーンに表示された正式名に置き換えます。
+
+```sh
+export MACOS_APP_IDENTITY='Developer ID Application: <チーム名> (<Team ID>)'
+export MACOS_INSTALLER_IDENTITY='Developer ID Installer: <チーム名> (<Team ID>)'
+export MACOS_NOTARY_PROFILE=keylume-notary
+npm run package -- --target universal-apple-darwin --bundles app
+bash scripts/sign-macos-release.sh src-tauri/target/universal-apple-darwin/release/bundle/macos/Keylume.app artifacts/distribution
+```
+
+タグから公開する場合は、Mac 版リポジトリの Actions secrets に以下を登録します。
+
+| Secret | 値 |
+| --- | --- |
+| `MACOS_CERTIFICATES_P12_BASE64` | 2 種類の証明書と対応する秘密鍵をまとめて書き出した、パスワード付き PKCS#12 の Base64 |
+| `MACOS_CERTIFICATES_PASSWORD` | PKCS#12 の書き出し用パスワード |
+| `MACOS_NOTARY_KEY_P8_BASE64` | 公証を申請できる App Store Connect チーム API キー（.p8）の Base64 |
+| `MACOS_NOTARY_KEY_ID`、`MACOS_NOTARY_ISSUER_ID` | そのキーの Key ID と Issuer ID |
+
 ## 検証
 
 前回の確認範囲は [v0.6.1検証記録](docs/verification-v0.6.1.md)、その前の確認とコミット一覧は [v0.6.0検証記録](docs/verification-v0.6.0.md)、機能全体の記録は [v0.5.0検証記録](docs/verification-v0.5.0.md) にまとめています。掲載画像はv0.5.0のUIのブラウザープレビューです。
 
-GitHub Actions はこのリポジトリで macOS 版をビルドして自己テストを実行します。CI は PKG と DMG を `artifacts/release/` にまとめます。`main` に含まれる `v*` タグが検証を通過すると、このリポジトリの Releases に両方を公開します。
+GitHub Actions は通常の CI で Universal ビルドと自己テストを実行します。今後の `v*` タグでは、アプリと両形式の配布物を署名し、Apple の公証チケットを添付します。Gatekeeper の審査、チケットとパッケージ内容の検証にすべて成功した場合に、`main` に含まれるタグの PKG と DMG を Releases に公開します。
 
 ```powershell
 npm test
