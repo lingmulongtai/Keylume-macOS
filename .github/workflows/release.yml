@@ -8,10 +8,10 @@ concurrency:
   group: release-${{ github.ref }}
   cancel-in-progress: false
 jobs:
-  windows:
-    uses: ./.github/workflows/windows.yml
+  macos:
+    uses: ./.github/workflows/macos.yml
   publish:
-    needs: windows
+    needs: macos
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -22,7 +22,7 @@ jobs:
           fetch-depth: 0
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
-          name: keylume-windows
+          name: keylume-macos
           path: release-assets
       - name: Publish verified preview release
         env:
@@ -34,5 +34,5 @@ jobs:
           git merge-base --is-ancestor "$GITHUB_SHA" origin/main
           test -f "docs/releases/$GITHUB_REF_NAME.md"
           gh release create "$GITHUB_REF_NAME" release-assets/* --verify-tag \
-            --title "Keylume $GITHUB_REF_NAME Preview" \
+            --title "Keylume macOS $GITHUB_REF_NAME Preview" \
             --notes-file "docs/releases/$GITHUB_REF_NAME.md" --prerelease

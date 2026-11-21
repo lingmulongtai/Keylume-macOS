@@ -220,7 +220,7 @@ pub fn spawn(
                     let handle = app.clone();
                     let updates = updater.clone();
                     let shared_core = core.clone();
-                    app.dialog().message(format!("Keylume v{} が利用できます。リリースページから Windows 版をダウンロードして更新してください。", release.version))
+                    app.dialog().message(format!("Keylume v{} が利用できます。リリースページから、お使いの OS に対応する版をダウンロードしてください。", release.version))
                         .title("Keylume のアップデート")
                         .buttons(MessageDialogButtons::OkCancelCustom("更新ページを開く".into(), "あとで".into()))
                         .show(move |accepted| {
@@ -277,7 +277,7 @@ mod tests {
         state.release = Some(crate::updates::Release {
             version: "0.3.0".into(),
             tag: "v0.3.0".into(),
-            url: "https://github.com/lingmulongtai/Keylume/releases/tag/v0.3.0".into(),
+            url: "https://github.com/lingmulongtai/Keylume-macOS/releases/tag/v0.3.0".into(),
             prerelease: true,
         });
         let updater = Updater {
