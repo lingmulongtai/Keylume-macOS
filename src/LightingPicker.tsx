@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ChevronDown, LayoutGrid } from 'lucide-react';
 import type { ViewProps } from './ui-state';
 import { Modal } from './components';
@@ -6,6 +6,10 @@ import { Miniature, PresetsScreen } from './Screens';
 export default function LightingPicker(props: ViewProps) {
   const [expanded, setExpanded] = useState(false),
     [library, setLibrary] = useState(false);
+  const tray = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (expanded) tray.current?.scrollIntoView({ block: 'nearest' });
+  }, [expanded]);
   const { state, act } = props;
   return (
     <div className="lighting-picker">
@@ -19,7 +23,7 @@ export default function LightingPicker(props: ViewProps) {
         <ChevronDown size={14} />
       </button>
       {expanded && (
-        <div className="lighting-picker-tray">
+        <div className="lighting-picker-tray" ref={tray}>
           <div className="lighting-picker-heading">
             <span>ライティングを選ぶ</span>
             <button onClick={() => setLibrary(true)}>
