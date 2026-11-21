@@ -24,7 +24,11 @@ jobs:
       - run: npx playwright test
       - run: npm run build
       - run: cargo test --manifest-path src-tauri/Cargo.toml --locked --lib
-      - run: npm run package -- --target universal-apple-darwin
+      - name: Build universal macOS packages
+        run: |
+          export CARGO_ENCODED_RUSTFLAGS="--remap-path-prefix=$HOME=/build/home"$'\x1f'"--remap-path-prefix=$GITHUB_WORKSPACE=/src/keylume"
+          export CFLAGS="-ffile-prefix-map=$GITHUB_WORKSPACE=/src/keylume -ffile-prefix-map=$HOME=/build/home"
+          npm run package -- --target universal-apple-darwin
       - name: Verify universal app and native self-test
         run: |
           app=src-tauri/target/universal-apple-darwin/release/bundle/macos/Keylume.app
