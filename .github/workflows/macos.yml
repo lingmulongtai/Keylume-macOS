@@ -35,9 +35,16 @@ jobs:
           codesign --verify --deep --strict "$app"
           "$app/Contents/MacOS/keylume" --self-test "$RUNNER_TEMP/keylume-report.json"
           node -e "if (!require(process.argv[1]).passed) process.exit(1)" "$RUNNER_TEMP/keylume-report.json"
+      - name: Prepare DMG and PKG
+        run: |
+          set -euo pipefail
+          bundle=src-tauri/target/universal-apple-darwin/release/bundle
+          version=$(node -p 'require("./package.json").version')
+          bash scripts/package-macos-pkg.sh "$bundle/macos/Keylume.app" artifacts/release
+          cp "$bundle/dmg/Keylume_${version}_universal.dmg" artifacts/release/
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: keylume-macos
-          path: src-tauri/target/universal-apple-darwin/release/bundle/dmg/Keylume_*_universal.dmg
+          path: artifacts/release/
           if-no-files-found: error
           retention-days: 14

@@ -33,6 +33,8 @@ jobs:
           test "$GITHUB_REF_NAME" = "v$(node -p 'require("./package.json").version')"
           git merge-base --is-ancestor "$GITHUB_SHA" origin/main
           test -f "docs/releases/$GITHUB_REF_NAME.md"
-          gh release create "$GITHUB_REF_NAME" release-assets/* --verify-tag \
+          base="release-assets/Keylume_${GITHUB_REF_NAME#v}_universal"
+          test -s "$base.dmg" && test -s "$base.pkg"
+          gh release create "$GITHUB_REF_NAME" "$base.dmg" "$base.pkg" --verify-tag \
             --title "Keylume macOS $GITHUB_REF_NAME Preview" \
             --notes-file "docs/releases/$GITHUB_REF_NAME.md" --prerelease
