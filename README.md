@@ -15,9 +15,9 @@ PKG は未署名です。両形式のアプリはアドホック署名済みで�
 
 Windows 版は [Keylume](https://github.com/lingmulongtai/Keylume) で開発・配布しています。
 
-サイドバーや再生操作の背景には、macOS 26 以降で Liquid Glass、以前の macOS では半透明のシステム素材を使います。画面はライト・ダークの外観と「透明度を下げる」設定に合わせて切り替わります。
+Mac版はサイドバーからホーム、演奏、コントローラー、設定を切り替えます。サイドバーには macOS 26 以降で Liquid Glass、以前の対応バージョンで標準の半透明素材を使います。ライト・ダークの外観と「透明度を下げる」設定に対応します。
 
-![Mac版ホームで Modeled Grand のデモを再生している画面](docs/images/macos-glass-home.png)
+![Mac版ホームのダーク表示。中央に鍵盤とテスト演奏、左にナビゲーション](docs/images/macos-glass-home.png)
 
 1. 起動してデバイスプレビューを確認します。
 2. 「設定 → デバイス」で **MockDevice でプレビュー** を OFF にすると、Launchkey MK4 61 の DAW ポートを探します。
