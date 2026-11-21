@@ -117,6 +117,22 @@ test('all screens load without browser errors at the minimum window size', async
   expect(errors).toEqual([]);
 });
 
+test('device options dismiss with Escape and outside clicks', async ({ page }) => {
+  const options = page.getByLabel('本体の操作', { exact: true });
+  const brightness = page.getByRole('slider', { name: 'マスター輝度' });
+  await options.click();
+  await expect(brightness).toBeVisible();
+  await brightness.click();
+  await expect(brightness).toBeVisible();
+  await brightness.focus();
+  await page.keyboard.press('Escape');
+  await expect(brightness).toBeHidden();
+  await expect(options).toBeFocused();
+  await options.click();
+  await page.getByRole('heading', { name: 'ホーム', exact: true }).click();
+  await expect(brightness).toBeHidden();
+});
+
 test('hardware face and clickable controls stay aligned at full zoom', async ({ page }) => {
   await expect(page.locator('.device-base [data-key]')).toHaveCount(61);
   const physical = await page.locator('.device-base [data-control="pad.top.1"] rect').boundingBox();

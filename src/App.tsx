@@ -60,6 +60,28 @@ export default function App() {
     [error, setError] = useState(''),
     [setup, setSetup] = useState(false),
     [saveName, setSaveName] = useState<string | null>(null);
+  const deviceOptions = useRef<HTMLDetailsElement>(null);
+  useEffect(() => {
+    const dismissOutside = (event: Event) => {
+      const menu = deviceOptions.current;
+      if (menu?.open && !event.composedPath().includes(menu)) menu.open = false;
+    };
+    const dismissOnEscape = (event: KeyboardEvent) => {
+      const menu = deviceOptions.current;
+      if (event.key === 'Escape' && menu?.open) {
+        menu.open = false;
+        menu.querySelector('summary')?.focus();
+      }
+    };
+    document.addEventListener('pointerdown', dismissOutside, true);
+    document.addEventListener('focusin', dismissOutside);
+    document.addEventListener('keydown', dismissOnEscape);
+    return () => {
+      document.removeEventListener('pointerdown', dismissOutside, true);
+      document.removeEventListener('focusin', dismissOutside);
+      document.removeEventListener('keydown', dismissOnEscape);
+    };
+  }, []);
   const latest = useRef(state);
   latest.current = state;
   const queue = useRef<Promise<unknown>>(Promise.resolve()),
@@ -328,7 +350,7 @@ export default function App() {
             {state.paused ? <Play size={15} /> : <Pause size={15} />}
             <span>{state.paused ? '再開' : '一時停止'}</span>
           </button>
-          <details className="device-options">
+          <details className="device-options" ref={deviceOptions}>
             <summary aria-label="本体の操作" title="本体の操作">
               <Ellipsis size={19} />
             </summary>
@@ -352,7 +374,13 @@ export default function App() {
                   {Math.round(state.settings.masterBrightness * 100)}%
                 </output>
               </label>
-              <button className="coexist-status" onClick={() => setPage('coexist')}>
+              <button
+                className="coexist-status"
+                onClick={() => {
+                  if (deviceOptions.current) deviceOptions.current.open = false;
+                  setPage('coexist');
+                }}
+              >
                 <Radio size={14} />
                 {state.status.effectiveMode === 'handoff' ? 'DAW に譲る' : 'ライティング優先'}
                 <ChevronRight size={12} />
