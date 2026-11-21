@@ -1,0 +1,499 @@
+/* The main WKWebView sits above the system material. The detached stage is an
+   independently composited canvas whose alpha belongs to the performer. */
+:root:not([data-surface='stage']) {
+  color-scheme: light;
+  --bg: #edf1f5;
+  --panel: #fbfdff;
+  --raised: #ffffff;
+  --text: #1c2a36;
+  --muted: #506270;
+  --line: rgba(47, 75, 93, 0.18);
+  --accent: #006e67;
+  --ok: #04765c;
+  --warn: #885409;
+  --error: #a93037;
+  --glass-sidebar: rgba(238, 249, 250, 0.55);
+  --glass-workspace: rgba(243, 247, 250, 0.79);
+  --glass-panel: rgba(255, 255, 255, 0.68);
+  --glass-control: rgba(255, 255, 255, 0.74);
+  --glass-sheet: rgba(246, 251, 253, 0.95);
+  --glass-rim: rgba(255, 255, 255, 0.83);
+  --glass-shadow: rgba(30, 52, 77, 0.13);
+  --glass-selected: #d3eeea;
+  --glass-primary: #08786f;
+  --glass-on-primary: #fff;
+  --glass-canvas: #1d3035;
+  --glass-lagoon: rgba(89, 186, 164, 0.46);
+  --glass-iris: rgba(125, 134, 203, 0.32);
+  --glass-blur: saturate(1.65) blur(22px);
+  --glass-glint: rgba(255, 255, 255, 0.75);
+  --glass-tide: rgba(160, 213, 212, 0.65);
+  --glass-violet: rgba(167, 172, 219, 0.42);
+  --glass-lift:
+    inset 0 1px 0 1px var(--glass-rim), inset 1px 0 0 var(--glass-rim), inset 0 -1px 0 var(--line),
+    0 5px 14px -5px var(--glass-shadow);
+  --glass-edge: inset 0 1px 0 var(--glass-rim), 0 1px 3px var(--glass-shadow);
+  --text-muted: var(--muted);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-surface='stage']) {
+    color-scheme: dark;
+    --bg: #162228;
+    --panel: #253239;
+    --raised: #34454c;
+    --text: #eff5f6;
+    --muted: #b3c3c9;
+    --line: rgba(186, 219, 226, 0.18);
+    --accent: #7eebd2;
+    --ok: #77e2b4;
+    --warn: #ffd182;
+    --error: #ffacae;
+    --glass-sidebar: rgba(38, 59, 64, 0.54);
+    --glass-workspace: rgba(23, 34, 40, 0.83);
+    --glass-panel: rgba(45, 61, 67, 0.73);
+    --glass-control: rgba(61, 79, 85, 0.68);
+    --glass-sheet: rgba(36, 51, 58, 0.96);
+    --glass-rim: rgba(224, 250, 255, 0.27);
+    --glass-glint: rgba(221, 249, 255, 0.15);
+    --glass-tide: rgba(63, 131, 132, 0.51);
+    --glass-violet: rgba(117, 114, 165, 0.38);
+    --glass-shadow: rgba(0, 7, 16, 0.3);
+    --glass-selected: #305a55;
+    --glass-primary: #93e7d4;
+    --glass-on-primary: #082b24;
+    --glass-canvas: #121f24;
+    --glass-lagoon: rgba(41, 143, 121, 0.51);
+    --glass-iris: rgba(113, 102, 173, 0.38);
+  }
+}
+
+:root:not([data-surface='stage']) :is(body, #root) {
+  background: transparent;
+}
+:root[data-native-glass] {
+  background: transparent;
+}
+.app-shell,
+.stage-controls {
+  background:
+    radial-gradient(ellipse at 0% 5%, var(--glass-lagoon), transparent 52%),
+    radial-gradient(ellipse at 93% 96%, var(--glass-iris), transparent 57%);
+}
+.app-navigation,
+.app-header,
+.stage-controls,
+.stage-tools,
+.modal,
+.toast,
+.lighting-picker-tray {
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+}
+.app-navigation {
+  z-index: 2;
+  background:
+    linear-gradient(130deg, var(--glass-glint), transparent 25%),
+    radial-gradient(ellipse at 0% 85%, var(--glass-violet), transparent 55%),
+    linear-gradient(150deg, var(--glass-tide), transparent 58%), var(--glass-sidebar);
+  border-color: var(--line);
+  align-items: center;
+}
+.app-navigation nav {
+  padding: 3px;
+  align-items: center;
+}
+.app-navigation nav button {
+  height: 34px;
+  white-space: nowrap;
+  border: 1px solid transparent;
+  border-radius: 11px;
+  color: var(--muted);
+  font-weight: 500;
+}
+.app-navigation nav button.active,
+:is(.segmented, .settings-navigation, .stage-mode, .zones) button:is(.active, .selected),
+.controller-mode [aria-pressed='true'] {
+  color: var(--accent);
+  background: var(--glass-selected);
+  border-color: var(--line);
+  box-shadow: var(--glass-edge);
+}
+.app-navigation nav button.active svg {
+  stroke-width: 2.4;
+}
+.brand img {
+  width: 29px;
+  height: 29px;
+  filter: none;
+}
+.brand > span {
+  font-size: 18px;
+  letter-spacing: -0.6px;
+}
+.app-content {
+  background:
+    radial-gradient(ellipse at 100% 0, var(--glass-glint), transparent 48%), var(--glass-workspace);
+  min-width: 0;
+}
+.app-header,
+.home-demo,
+.stage-player {
+  background:
+    linear-gradient(155deg, var(--glass-glint), transparent 42%),
+    linear-gradient(110deg, var(--glass-panel) 52%, var(--glass-tide));
+  box-shadow: var(--glass-lift);
+}
+.app-header {
+  position: relative;
+  z-index: 1;
+  min-height: 42px;
+  height: auto;
+  padding: 6px 13px;
+  margin: 10px 12px 8px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+}
+
+.app-footer,
+.setup-banner,
+.update-banner,
+.inspector-bottom {
+  background: var(--glass-panel);
+  border-color: var(--line);
+  color: var(--muted);
+}
+.inspector-bottom {
+  background: var(--panel);
+}
+:is(.setup-banner, .app-footer) button,
+.master-brightness output {
+  color: var(--text);
+}
+.workspace-top h1,
+.page-title h1,
+.screen-title h1 {
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.035em;
+}
+.device-stage {
+  color-scheme: dark;
+  --text: #f0f7f6;
+  --muted: #b5c8cb;
+  --accent: #8dedcf;
+  --glass-control: #3c5057a8;
+  --glass-rim: #e4ffff33;
+  background:
+    radial-gradient(ellipse at 24% 0%, #62979c44, transparent 64%),
+    radial-gradient(ellipse at 90% 100%, #79739f36, transparent 68%), var(--glass-canvas);
+  border-radius: 16px 16px 0 0;
+  border-color: #d9ffff20;
+  box-shadow:
+    inset 0 1px 0 #d9ffff2b,
+    0 3px 13px var(--glass-shadow);
+}
+.home-demo {
+  border-radius: 0 0 16px 16px;
+  border-color: var(--line);
+  margin-bottom: 3px;
+}
+.piano-panel {
+  margin-top: 12px;
+  padding: 14px;
+}
+.inspector,
+.card,
+.piano-panel,
+.stage-player,
+.mode-card,
+.preset-card,
+.sound-card {
+  background: var(--glass-panel);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: var(--glass-edge);
+}
+.inspector {
+  margin: 12px 12px 12px 0;
+}
+.stage-player {
+  background: linear-gradient(120deg, var(--glass-glint), transparent 65%), var(--glass-panel);
+  box-shadow: var(--glass-lift);
+  padding: 0 15px;
+}
+.stage-controls .stage-player {
+  padding: 6px 10px;
+}
+.stage-controls {
+  background-color: var(--bg);
+  min-height: 100%;
+}
+.stage-controls-heading > strong {
+  color: var(--accent);
+}
+.stage-preview {
+  border-radius: 14px;
+}
+.stage-tools,
+.segmented,
+.stage-mode,
+.search,
+.library-search,
+.lighting-picker-current,
+.pause-button,
+.secondary,
+.mode-switch,
+.home-demo button:not(.primary),
+.stage-toolbar button:not(.primary),
+.stage-transport button:not(.primary),
+.stage-controls-heading button,
+.piano-panic,
+.octave-control button {
+  background-color: var(--glass-control);
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  box-shadow: var(--glass-edge);
+}
+:is(.stage-toolbar, .stage-transport, .stage-controls-heading) button {
+  padding: 5px 10px;
+}
+.stage-mode {
+  padding: 3px;
+}
+.stage-mode button {
+  padding: 6px 13px;
+}
+.primary,
+.home-demo .primary {
+  color: var(--glass-on-primary);
+  background: var(--glass-primary);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  box-shadow: var(--glass-edge);
+}
+.primary:hover,
+.home-demo .primary:hover {
+  background: color-mix(in srgb, var(--glass-primary) 88%, var(--text));
+}
+:root:not([data-surface='stage']) button:enabled:hover:not(.primary) {
+  background-color: color-mix(in srgb, var(--glass-control) 86%, var(--accent));
+}
+.piano-power,
+.icon-button,
+.stage-tools,
+.zones button,
+.badge,
+.tag {
+  border-radius: 999px;
+}
+.piano-power.active,
+.icon-button.active {
+  background: var(--glass-selected);
+  color: var(--accent);
+}
+.device-stage .icon-button.active {
+  background: #536b69;
+}
+:root:not([data-surface='stage'])
+  :is(input:not([type='range'], [type='checkbox'], [type='color']), select, textarea) {
+  background-color: var(--glass-control);
+  border-color: var(--line);
+  border-radius: 8px;
+  color: var(--text);
+}
+select option {
+  background: var(--panel);
+  color: var(--text);
+}
+.segmented button,
+.settings-navigation button,
+.stage-mode button,
+.controller-list button {
+  border-radius: 7px;
+  color: var(--muted);
+}
+.modal,
+.toast,
+.lighting-picker-tray {
+  background-color: var(--glass-sheet);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  box-shadow:
+    inset 0 1px var(--glass-rim),
+    0 22px 56px -12px var(--glass-shadow);
+}
+.modal::backdrop {
+  background: rgba(9, 22, 34, 0.34);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+}
+:is(.layer-row, .sound-card, .mode-card, .preset-card).selected,
+.controller-list button.selected {
+  background: var(--glass-selected);
+  border-color: var(--accent);
+}
+.layer-row {
+  background: var(--glass-panel);
+}
+.layer-row:first-of-type {
+  border-radius: 10px 10px 0 0;
+}
+:is(.effect-icon, .device-emblem, .pad-map label, .routing-flow, .controller-map, .midi-monitor) {
+  background: var(--panel);
+  border-color: var(--line);
+}
+.note,
+.browser-label,
+.badge,
+.tag,
+.setup-art,
+.empty-state,
+:is(.lighting-picker-grid, .effect-grid) button {
+  background-color: var(--glass-panel);
+  border-color: var(--line);
+}
+:is(
+  .subtle,
+  .browser-label,
+  .coexist-status,
+  .master-brightness,
+  .zones > span,
+  .layer-select small,
+  .inspector-effect small,
+  .inspector-title .micro,
+  .field > span,
+  .field > span output,
+  .page-title p,
+  .toggle-row small,
+  .note,
+  .badge:not(.ok, .warn),
+  .tag,
+  .performance-page p,
+  .stage-field small,
+  .stage-monitor small,
+  .stage-toolbar > span,
+  .stage-scores small,
+  .groove-heading small,
+  .stage-mode button:not(.active),
+  .effect-grid small,
+  .mode-card p,
+  .input-readout,
+  .card summary,
+  .diagnostic-grid span,
+  .midi-monitor,
+  .guide-text,
+  .routing-flow,
+  .status-line > span:first-child,
+  .priority-line,
+  .color-picker .numeric
+) {
+  color: var(--muted);
+}
+:is(.stage-scores strong, .groove-heading strong) {
+  color: var(--accent);
+}
+:is(.setup-art span, .empty-state h2, .empty-state h3, .active-profile, .preset-actions button) {
+  color: var(--text);
+}
+.color-picker {
+  background: var(--glass-control);
+  border: 1px solid var(--line);
+  border-radius: 9px;
+}
+.toggle-row i {
+  border-radius: 999px;
+  background: var(--glass-control);
+  border-color: var(--line);
+}
+.toggle-row i::after {
+  background: var(--muted);
+}
+.toggle-row input:checked + i::after {
+  background: var(--glass-on-primary);
+}
+
+@media (min-width: 1160px) {
+  .app-shell {
+    flex-direction: row;
+  }
+  .app-navigation {
+    width: 164px;
+    height: auto;
+    margin: 10px 0 10px 10px;
+    border-radius: 23px;
+    box-shadow: var(--glass-lift);
+    flex-direction: column;
+    align-items: stretch;
+    padding: 24px 10px 13px;
+    gap: 24px;
+    border: 1px solid var(--line);
+  }
+  .app-content {
+    margin-left: 8px;
+    border-left: 1px solid var(--line);
+  }
+  .brand {
+    padding-left: 8px;
+  }
+  .app-navigation nav {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 4px;
+    padding: 0;
+  }
+  .app-navigation nav button {
+    justify-content: flex-start;
+    height: 38px;
+    padding: 0 10px;
+    gap: 10px;
+  }
+  .navigation-utilities {
+    margin: auto 4px 0;
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .editor-grid {
+    grid-template-columns: minmax(0, 1fr) clamp(228px, 20vw, 308px);
+  }
+}
+@media (max-width: 1159px) {
+  .app-navigation {
+    height: 45px;
+    margin: 8px 10px 0;
+    border: 1px solid var(--line);
+    border-radius: 17px;
+    box-shadow: var(--glass-lift);
+  }
+  .app-header {
+    margin: 6px 10px 5px;
+  }
+}
+@media (prefers-reduced-transparency: reduce), (prefers-contrast: more) {
+  :root:not([data-surface='stage']) {
+    --glass-sidebar: var(--panel);
+    --glass-workspace: var(--bg);
+    --glass-panel: var(--panel);
+    --glass-control: var(--raised);
+    --glass-sheet: var(--panel);
+    --glass-lagoon: transparent;
+    --glass-iris: transparent;
+    --glass-glint: transparent;
+    --glass-tide: transparent;
+    --glass-violet: transparent;
+    --glass-lift: none;
+    --glass-blur: none;
+    --glass-edge: none;
+    background-color: var(--bg);
+  }
+  .app-header,
+  .home-demo,
+  .stage-player {
+    background: var(--panel);
+  }
+  .modal::backdrop {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
